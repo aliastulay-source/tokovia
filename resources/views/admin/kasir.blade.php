@@ -301,11 +301,8 @@
 <div class="header">
     <h1>🧾 Kasir - Toko Via</h1>
     <div class="header-right">
-        <a href="{{ route('admin.products.index') }}" class="btn-nav">📦 Produk</a>
-        <a href="{{ route('admin.riwayat') }}" class="btn-nav">📋 Riwayat</a>
-        <a href="{{ route('admin.laporan') }}" class="btn-nav">📊 Laporan</a>
         <form action="{{ route('admin.logout') }}" method="POST" style="display:inline">
-            @csrf
+         @csrf
             <button type="submit" class="btn-logout">Logout</button>
         </form>
     </div>
@@ -584,5 +581,6 @@
     }
 </script>
 
+@include('admin.partials.bottom-nav')
 </body>
 </html>

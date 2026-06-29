@@ -12,6 +12,8 @@ Route::get('/', [ProductController::class, 'shop'])->name('shop');
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.post');
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
+Route::get('/admin/ganti-password', [AdminController::class, 'formGantiPassword'])->name('admin.ganti-password');
+Route::post('/admin/ganti-password', [AdminController::class, 'simpanPassword'])->name('admin.simpan-password');
 
 // Halaman admin (harus login)
 Route::middleware('auth')->prefix('admin')->group(function () {
@@ -22,6 +24,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         'store'   => 'admin.products.store',
         'destroy' => 'admin.products.destroy',
     ]);
+
+    // Tambah stok
+    Route::post('/products/{product}/tambah-stok', [ProductController::class, 'tambahStok'])->name('admin.products.tambahStok');
 
     // Kasir
     Route::get('/kasir', [KasirController::class, 'index'])->name('admin.kasir');

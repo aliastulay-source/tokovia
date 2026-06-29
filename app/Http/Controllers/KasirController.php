@@ -90,7 +90,7 @@ class KasirController extends Controller
     // Laporan harian
     public function laporan(Request $request)
 {
-    $query = Transaction::with('items');
+    $query = Transaction::with('items.product');
 
     if ($request->hari) {
         $query->whereDay('created_at', $request->hari);

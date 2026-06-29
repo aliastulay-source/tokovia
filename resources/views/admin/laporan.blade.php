@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Harian - Toko Via</title>
     <style>
+        @media print {
+    .header, .bottom-nav, .bottom-nav-spacer,
+    form, .summary-cards, .card-header button { display: none !important; }
+    body { background: white; }
+    .card { box-shadow: none; border: none; }
+}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f0f0f0; }
         .header {
@@ -72,14 +78,11 @@
 <div class="header">
     <h1>📊 Laporan Harian</h1>
     <div class="header-right">
-        <a href="{{ route('admin.kasir') }}" class="btn-nav">🧾 Kasir</a>
-        <a href="{{ route('admin.products.index') }}" class="btn-nav">📦 Produk</a>
-        <a href="{{ route('admin.riwayat') }}" class="btn-nav">📋 Riwayat</a>
-        <form action="{{ route('admin.logout') }}" method="POST" style="display:inline">
-            @csrf
-            <button type="submit" class="btn-logout">Logout</button>
-        </form>
-    </div>
+    <form action="{{ route('admin.logout') }}" method="POST" style="display:inline">
+        @csrf
+        <button type="submit" class="btn-logout">Logout</button>
+    </form>
+</div>
 </div>
 
 <div class="container">
@@ -112,11 +115,16 @@
 
     <!-- Summary -->
     <div class="summary-grid">
-        <div class="summary-card">
-            <div class="icon">🧾</div>
-            <div class="nilai">{{ $total_transaksi }}</div>
-            <div class="label">Total Transaksi</div>
-        </div>
+       <div class="summary-card">
+    <div class="icon">💰</div>
+    @php
+        $keuntungan = $hari_ini->flatMap(fn($t) => $t->items)->sum(function($item) {
+            return ($item->product->harga - $item->product->harga_asli) * $item->jumlah;
+        });
+    @endphp
+    <div class="nilai" style="color:#4caf50;">Rp {{ number_format($keuntungan, 0, ',', '.') }}</div>
+    <div class="label">Total Keuntungan</div>
+</div>
         <div class="summary-card">
             <div class="icon">💰</div>
             <div class="nilai">Rp {{ number_format($total_hari_ini, 0, ',', '.') }}</div>
@@ -125,52 +133,76 @@
         <div class="summary-card">
             <div class="icon">📦</div>
             <div class="nilai">{{ $hari_ini->sum(fn($t) => $t->items->sum('jumlah')) }}</div>
-            <div class="label">Item Terjual</div>
+            <div class="label">Total Item Terjual</div>
         </div>
         <div class="summary-card">
+            <div class="label">Popular Item</div>
             <div class="icon">💵</div>
-            <div class="nilai">Rp {{ $total_transaksi > 0 ? number_format($total_hari_ini / $total_transaksi, 0, ',', '.') : 0 }}</div>
-            <div class="label">Rata-rata Transaksi</div>
+            <div class="nilai">
+    @php
+        $semuaItem = $hari_ini->flatMap(fn($t) => $t->items)
+            ->groupBy('nama_produk')
+            ->map(fn($g) => $g->sum('jumlah'))
+            ->sortDesc()
+            ->first();
+        $namaItem = $hari_ini->flatMap(fn($t) => $t->items)
+            ->groupBy('nama_produk')
+            ->map(fn($g) => $g->sum('jumlah'))
+            ->sortDesc()
+            ->keys()
+            ->first();
+    @endphp
+    {{ $semuaItem ?? 0 }}
+</div>
+<div class="label">{{ $namaItem ?? '-' }}</div>
         </div>
     </div>
 
     <!-- Tabel Transaksi Hari Ini -->
     <div class="card">
-        <div class="card-header">📋 Detail Transaksi Hari Ini</div>
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+    <span>📋 Detail Transaksi Hari Ini</span>
+    <button onclick="window.print()" style="background:#e91e63; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:13px;">
+        🖨️ Print / Save PDF
+    </button>
+</div>
         @if($hari_ini->isEmpty())
             <div class="kosong">Belum ada transaksi hari ini</div>
         @else
         <table>
             <thead>
-                <tr>
-                    <th>Kode</th>
-                    <th>Waktu</th>
-                    <th>Item</th>
-                    <th>Total</th>
-                    <th>Kasir</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($hari_ini as $trx)
-                <tr>
-                    <td>{{ $trx->kode_transaksi }}</td>
-                    <td>{{ $trx->created_at->format('H:i') }}</td>
-                    <td>{{ $trx->items->count() }}</td>
-                    <td>Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
-                    <td>{{ $trx->kasir }}</td>
-                </tr>
-                @endforeach
-                <tr class="total-row">
-                    <td colspan="3">TOTAL HARI INI</td>
-                    <td>Rp {{ number_format($total_hari_ini, 0, ',', '.') }}</td>
-                    <td></td>
-                </tr>
-            </tbody>
+    <tr>
+        <th>Nama Barang</th>
+        <th>Waktu</th>
+        <th>Jumlah</th>
+        <th>Subtotal</th>
+        <th>Kasir</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach($hari_ini as $trx)
+        @foreach($trx->items as $item)
+        <tr>
+            <td>{{ $item->nama_produk }}</td>
+            <td>{{ $trx->created_at->format('H:i') }}</td>
+            <td>{{ $item->jumlah }}</td>
+            <td>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+            <td>{{ $trx->kasir }}</td>
+        </tr>
+        @endforeach
+    @endforeach
+    <tr class="total-row">
+        <td colspan="3">TOTAL HARI INI</td>
+        <td>Rp {{ number_format($total_hari_ini, 0, ',', '.') }}</td>
+        <td></td>
+    </tr>
+</tbody>
         </table>
         @endif
     </div>
 
 </div>
 
+@include('admin.partials.bottom-nav')
 </body>
 </html>

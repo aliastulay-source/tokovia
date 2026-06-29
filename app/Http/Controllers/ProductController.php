@@ -23,30 +23,47 @@ class ProductController extends Controller
 
     // Simpan produk baru
     public function store(Request $request)
-{
-    $request->validate([
-        'nama'      => 'required',
-        'deskripsi' => 'required',
-        'harga'     => 'required|numeric',
-        'stok'      => 'required|numeric',
-        'gambar'    => 'nullable|image|max:2048',
-    ]);
+    {
+        $request->validate([
+    'nama' => 'required|unique:products,nama',
+    'harga' => 'required|numeric',
+    'harga_asli' => 'required|numeric',
+    'stok' => 'required|numeric',
+    'gambar' => 'nullable|image',
+], [
+            'nama.unique' => 'Produk dengan nama ini sudah ada! Gunakan fitur Tambah Stok.',
+        ]);
 
-    $data = $request->only(['nama', 'deskripsi', 'harga', 'stok']);
+       $data = $request->only(['nama', 'harga', 'harga_asli', 'stok']);
 
-    if ($request->hasFile('gambar')) {
-        $data['gambar'] = $request->file('gambar')->store('produk', 'public');
+        if ($request->hasFile('gambar')) {
+            $data['gambar'] = $request->file('gambar')->store('produk', 'public');
+        }
+
+        Product::create($data);
+        return redirect()->route('admin.products.index')
+               ->with('success', 'Produk berhasil ditambahkan!');
     }
 
-   Product::create($data);
-    return redirect()->route('admin.products.index')
-           ->with('success', 'Produk berhasil ditambahkan!');
-}
+    // Tambah stok produk
+    public function tambahStok(Request $request, Product $product)
+    {
+        $request->validate([
+            'jumlah' => 'required|numeric|min:1',
+        ], [
+            'jumlah.min' => 'Jumlah stok minimal 1.',
+        ]);
+
+        $product->stok += $request->jumlah;
+        $product->save();
+
+        return redirect()->route('admin.products.index')
+               ->with('success', "Stok {$product->nama} berhasil ditambah {$request->jumlah}!");
+    }
 
     // Hapus produk
     public function destroy(Product $product)
     {
-        // Hapus gambar jika ada
         if ($product->gambar) {
             \Storage::disk('public')->delete($product->gambar);
         }
@@ -56,4 +73,3 @@ class ProductController extends Controller
                ->with('success', 'Produk berhasil dihapus!');
     }
 }
-

@@ -57,10 +57,7 @@
 
 <div class="header">
     <h1>📋 Riwayat Transaksi</h1>
-    <div class="header-right">
-        <a href="{{ route('admin.kasir') }}" class="btn-nav">🧾 Kasir</a>
-        <a href="{{ route('admin.products.index') }}" class="btn-nav">📦 Produk</a>
-        <a href="{{ route('admin.laporan') }}" class="btn-nav">📊 Laporan</a>
+   <div class="header-right">
         <form action="{{ route('admin.logout') }}" method="POST" style="display:inline">
             @csrf
             <button type="submit" class="btn-logout">Logout</button>
@@ -122,5 +119,6 @@
     }
 </script>
 
+@include('admin.partials.bottom-nav')
 </body>
 </html>
