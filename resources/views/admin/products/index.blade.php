@@ -74,6 +74,20 @@
         .btn-confirm { background:#4caf50; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer; flex:1; font-size:15px; }
         .btn-cancel { background:#aaa; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer; flex:1; font-size:15px; }
     </style>
+    <!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e91e63">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Tokovia">
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('Service Worker registered'))
+            .catch(err => console.log('SW error:', err));
+    }
+</script>
 </head>
 <body>
     <div class="header">
