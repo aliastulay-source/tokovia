@@ -6,7 +6,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KasirController;
 
 // Halaman publik
-Route::get('/', [ProductController::class, 'shop'])->name('shop');
+Route::get('/', function () {
+    return redirect()->route('admin.login');
+});
 
 // Login admin
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('admin.login');
