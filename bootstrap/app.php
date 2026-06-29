@@ -11,9 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Tambahkan baris ini ↓
-        $middleware->redirectGuestsTo(fn () => route('admin.login'));
-    })
+    $middleware->trustProxies(at: '*');
+    $middleware->redirectGuestsTo(fn () => route('admin.login'));
+})
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
